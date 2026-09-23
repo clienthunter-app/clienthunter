@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ClientHunter AI: find clients before everyone else does</title>
+<meta name="description" content="A Windows app for freelancers and tradespeople. It finds people online who are asking to hire someone for what you do, filters out the noise, and alerts you while the post is still fresh. One-time purchase, 7-day free trial." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="ClientHunter AI: find clients before everyone else does" />
+<meta property="og:description" content="Finds people asking to hire someone for what you do, filters out the noise, and alerts you while the post is still fresh. One-time purchase, 7-day free trial." />
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f7fb;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #5b6472;
+    --border: #e4e7ec;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-soft: #eef0ff;
+    --orange: #ea580c;
+    --good: #047857;
+    --good-soft: #e7f6ef;
+    --warn: #b45309;
+    --warn-soft: #fdf3e2;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 12px 32px rgba(16, 24, 40, 0.08);
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1016;
+      --bg-soft: #151821;
+      --card: #171a24;
+      --text: #eef0f5;
+      --muted: #a2a9b8;
+      --border: #272b38;
+      --accent: #818cf8;
+      --accent-hover: #a5b4fc;
+      --accent-soft: #1f2242;
+      --orange: #fb923c;
+      --good: #34d399;
+      --good-soft: #10291f;
+      --warn: #fbbf24;
+      --warn-soft: #2e2410;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 84px 0; scroll-margin-top: 64px; }
+  h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 750; letter-spacing: -0.025em; }
+  h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 720; }
+  h3 { font-size: 1.1rem; font-weight: 650; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+  .eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .section-head { max-width: 720px; margin-bottom: 44px; }
+  .section-head p { margin-top: 14px; color: var(--muted); font-size: 1.08rem; }
+  .center { text-align: center; margin-left: auto; margin-right: auto; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 20px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font: inherit; font-weight: 600; font-size: 0.98rem;
+    text-decoration: none; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  @media (prefers-color-scheme: dark) { .btn.primary { color: #0e1016; } }
+  .btn.big { padding: 15px 26px; font-size: 1.05rem; }
+  .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+
+  /* Nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); text-decoration: none; font-size: 1.05rem; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); }
+  .nav .btn { padding: 9px 16px; font-size: 0.92rem; }
+  @media (max-width: 760px) { .nav-links { display: none; } .nav .btn { margin-left: auto; } }
+
+  /* Hero */
+  .hero { padding: 72px 0 40px; background: radial-gradient(1200px 500px at 70% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), radial-gradient(800px 400px at 0% 10%, color-mix(in srgb, var(--orange) 10%, transparent), transparent 70%); }
+  .hero-copy { max-width: 780px; }
+  .hero h1 .grad { background: linear-gradient(100deg, #6366f1, #f97316); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lead { font-size: 1.2rem; color: var(--muted); margin-top: 20px; max-width: 680px; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .hero-points { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 22px; color: var(--muted); font-size: 0.93rem; }
+  .hero-points span::before { content: "✓"; color: var(--good); font-weight: 700; margin-right: 7px; }
+  .shot { margin-top: 52px; border-radius: 16px; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+  .shot-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+  .shot-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--border); display: block; }
+  .shot-bar span { margin-left: 10px; font-size: 0.8rem; color: var(--muted); }
+  .caption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 14px; }
+
+  /* Problem */
+  .band { background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 860px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .card p { color: var(--muted); margin-top: 8px; font-size: 0.98rem; }
+  .stat { font-size: 1.7rem; font-weight: 750; color: var(--accent); line-height: 1.1; margin-bottom: 6px; }
+
+  /* Steps */
+  .steps { counter-reset: step; }
+  .step { position: relative; padding-top: 58px; }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; top: 20px; left: 24px; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; font-size: 0.9rem;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .step { padding-left: 24px; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  @media (max-width: 980px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+  .feature { padding: 22px; }
+  .feature .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 14px; }
+  .feature .ico svg { width: 21px; height: 21px; }
+
+  /* Split */
+  .split { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+  .split .shot { max-width: 500px; justify-self: center; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+  .checks { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 12px; }
+  .checks li { padding-left: 30px; position: relative; color: var(--muted); }
+  .checks li strong { color: var(--text); font-weight: 600; }
+  .checks li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; border-radius: 50%; background: var(--good-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--good) 35%, transparent); }
+  .checks li::after { content: ""; position: absolute; left: 6px; top: 9px; width: 6px; height: 9px; border: solid var(--good); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+  /* Sources */
+  .sources { display: grid; gap: 12px; }
+  .source { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: start; padding: 18px 22px; }
+  .source p { grid-column: 1 / -1; margin: 0; }
+  .pill { font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .pill.live { background: var(--good-soft); color: var(--good); }
+  .pill.paste { background: var(--accent-soft); color: var(--accent); }
+  .pill.soon { background: var(--warn-soft); color: var(--warn); }
+
+  /* Pricing */
+  .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+  @media (max-width: 900px) { .pricing { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+  .plan { display: flex; flex-direction: column; padding: 28px; position: relative; }
+  .plan.popular { border: 2px solid var(--accent); box-shadow: var(--shadow); }
+  .plan .tag { position: absolute; top: -13px; left: 28px; background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 12px; border-radius: 999px; }
+  @media (prefers-color-scheme: dark) { .plan .tag { color: #0e1016; } }
+  .plan .price { font-size: 2.6rem; font-weight: 780; margin: 14px 0 0; letter-spacing: -0.02em; }
+  .plan .price small { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .plan .for { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
+  .plan ul { list-style: none; padding: 0; margin: 22px 0 26px; display: grid; gap: 10px; font-size: 0.96rem; }
+  .plan li { padding-left: 26px; position: relative; }
+  .plan li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; }
+  .plan .btn { margin-top: auto; width: 100%; }
+  .plan .btn + .btn { margin-top: 10px; }
+  .fine { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 26px; }
+
+  /* FAQ */
+  .faq { max-width: 800px; margin: 0 auto; display: grid; gap: 12px; }
+  details { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0 22px; }
+  summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 600; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--muted); font-weight: 500; font-size: 1.3rem; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  details p { color: var(--muted); padding-bottom: 18px; }
+
+  /* CTA + footer */
+  .cta { text-align: center; }
+  .cta .hero-actions { justify-content: center; }
+  footer { border-top: 1px solid var(--border); padding: 32px 0; color: var(--muted); font-size: 0.9rem; }
+  .foot { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  .foot a { color: var(--muted); }
+  .foot .brand { font-size: 0.95rem; }
+  .foot .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  .spacer { flex: 1; }
+
+  :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><img src="assets/logo.png" alt="" width="30" height="30" />ClientHunter AI</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#sources">Where it looks</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn primary" data-download href="#pricing">Free trial</a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="eyebrow">For freelancers, agencies and tradespeople</div>
+        <h1>Find clients <span class="grad">before everyone else does.</span></h1>
+        <p class="lead">Every day, people post “I need someone to build my website” or “Can anyone recommend a painter?”, and the first good reply usually wins. ClientHunter finds those posts, throws away the noise, and alerts you while they're still fresh.</p>
+        <div class="hero-actions">
+          <a class="btn primary big" data-download href="#pricing">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Download the 7-day free trial
+          </a>
+          <a class="btn big" href="#pricing">See pricing</a>
+        </div>
+        <div class="hero-points">
+          <span>One-time purchase, no subscription</span>
+          <span>Runs on your own computer</span>
+          <span>Windows 10 and 11</span>
+        </div>
+      </div>
+      <figure class="shot" style="margin-bottom:0">
+        <div class="shot-bar" aria-hidden="true"><i></i><i></i><i></i><span>ClientHunter AI</span></div>
+        <img src="assets/dashboard.png" width="1683" height="974" alt="The ClientHunter dashboard listing new opportunities, each rated for buying intent, competition, match and budget." />
+      </figure>
+      <p class="caption">The dashboard, shown with example posts.</p>
+    </div>
+  </section>
+
+  <!-- Problem -->
+  <section class="band">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">The problem</div>
+        <h2>Good requests get buried. The ones you do find already have 30 replies.</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Scattered everywhere</h3>
+          <p>People ask for help in forums, Facebook groups, WhatsApp chats and community boards. Nobody has time to check them all, every hour.</p>
+        </div>
+        <div class="card">
+          <h3>Buried in noise</h3>
+          <p>For every real client there are dozens of people advertising themselves, job seekers, spam and “free work” requests.</p>
+        </div>
+        <div class="card">
+          <h3>Speed wins</h3>
+          <p>A post with two replies is an opportunity. The same post a day later, with thirty replies, usually isn't.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How it works</div>
+        <h2>Tell it what you do. It does the looking.</h2>
+      </div>
+      <div class="grid-3 steps">
+        <div class="card step">
+          <h3>Describe your service</h3>
+          <p>“I build websites for small businesses”, “I paint houses in Leeds”, “I do bookkeeping”. Any service works, and you can set your area and minimum job size.</p>
+        </div>
+        <div class="card step">
+          <h3>It searches and filters</h3>
+          <p>ClientHunter checks its sources on a schedule, removes self-promotion, job seekers and spam, and ranks what's left by freshness, competition and fit.</p>
+        </div>
+        <div class="card step">
+          <h3>You reply first</h3>
+          <p>A strong lead triggers an alert on your desktop or phone (Telegram). Open it, edit the suggested reply, and send it yourself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="band">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Features</div>
+        <h2>Everything you need to find the good ones first.</h2>
+      </div>
+      <div class="features">
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+          <h3>Freshness tracking</h3>
+          <p>Every lead shows its age, from “just posted” to “older”, so you know what's still worth answering.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M21 20v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <h3>Competition estimate</h3>
+          <p>It counts visible replies and flags posts few people have answered yet.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M6 12h12M10 18h4"/></svg></div>
+          <h3>Noise filter</h3>
+          <p>Filters out people advertising their own services, job hunters, spam and unpaid requests.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <h3>Local area matching</h3>
+          <p>For trades: only jobs within your travel distance, for example “within 30 km of Manchester”.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M12 9v4m0 3h.01"/></svg></div>
+          <h3>Scam warnings</h3>
+          <p>Flags common warning signs, like overpay-and-refund tricks, payment by gift card, or being asked to pay a fee upfront.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3>Reply drafts</h3>
+          <p>Four reply styles written for each post by the built-in AI. It never invents experience or clients, and never sends anything for you.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          <h3>Alerts</h3>
+          <p>Automatic searches every 15 minutes to once a day, with desktop or Telegram alerts and quiet hours for the night.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M13 14h7v6h-7z"/><path d="M4 17h7v3H4z"/></svg></div>
+          <h3>Browser helper</h3>
+          <p>Reading your Facebook groups? Matching posts get outlined as you scroll, with one click to score them and draft your reply.</p>
+        </div>
+        <div class="card feature">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></div>
+          <h3>Pipeline and revenue</h3>
+          <p>Track each lead from contacted to quoted to won, and see what ClientHunter has earned you.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lead detail -->
+  <section>
+    <div class="wrap split">
+      <div>
+        <div class="eyebrow">Every lead, explained</div>
+        <h2>Know why it's worth your time, and what to say.</h2>
+        <ul class="checks">
+          <li><strong>What they need</strong>: type of job, budget, deadline and location, taken only from what the post actually says.</li>
+          <li><strong>Why it ranks high</strong>: buying intent, competition and how well it matches your service.</li>
+          <li><strong>A deeper look on request</strong>: the likely scope, questions to ask and risks to watch.</li>
+          <li><strong>A reply you control</strong>: short, professional, friendly or direct. Edit it, copy it, and send it yourself on the original post.</li>
+        </ul>
+      </div>
+      <figure class="shot" style="margin-top:0">
+        <div class="shot-bar" aria-hidden="true"><i></i><i></i><i></i><span>Lead details</span></div>
+        <img src="assets/lead-detail.png" width="760" height="974" loading="lazy" alt="A lead opened in ClientHunter, showing the budget, deadline and a suggested reply with a Copy button." />
+      </figure>
+    </div>
+  </section>
+
+  <!-- Sources -->
+  <section id="sources" class="band">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Where it looks</div>
+        <h2>Straight answers about sources.</h2>
+        <p>ClientHunter only uses sources that allow it. It never logs in as you, gets around blocks, or scrapes sites that forbid it.</p>
+      </div>
+      <div class="sources">
+        <div class="card source">
+          <h3>Community forum hiring boards</h3><span class="pill live">Searched automatically</span>
+          <p class="muted">The “Jobs”, “Hire a Pro” and “Paid work” boards of 16 public forums, including Bubble, n8n, Make, Blender Artists, SketchUp, Arduino and three.js. This is where most automatic leads come from.</p>
+        </div>
+        <div class="card source">
+          <h3>Freelance job boards and Hacker News</h3><span class="pill live">Searched automatically</span>
+          <p class="muted">Contract and freelance listings from Remotive, Jobicy and Arbeitnow, plus Hacker News. Permanent roles are filtered out. These are quieter than the forums: useful extras rather than the main source.</p>
+        </div>
+        <div class="card source">
+          <h3>Facebook groups, WhatsApp, Nextdoor, LinkedIn, anywhere else</h3><span class="pill paste">Highlighted as you scroll</span>
+          <p class="muted">Facebook doesn't let any app read groups automatically, and tools that do it anyway put your account at risk. ClientHunter takes the safe route: a browser helper that watches the posts <em>you</em> are already reading and outlines the ones worth answering, with one click to send them over. It never fetches, scrolls or reads anything in the background. You can also paste a post by hand.</p>
+        </div>
+        <div class="card source">
+          <h3>Any board you know</h3><span class="pill live">Searched automatically</span>
+          <p class="muted">Add the address of any public feed or forum board where your work gets posted, and ClientHunter checks it on every search. It asks the site's permission first and refuses pages that need a login.</p>
+        </div>
+        <div class="card source">
+          <h3>Reddit</h3><span class="pill soon">Coming soon</span>
+          <p class="muted">Built on Reddit's official API and waiting for Reddit's approval. Existing customers get it in a free update.</p>
+        </div>
+      </div>
+      <p class="fine" style="text-align:left">Today the automatic sources suit digital services best: web, apps, automation and AI. Tradespeople get local matching and paste-a-post now, with more local sources planned.</p>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head center" style="text-align:center">
+        <div class="eyebrow">Pricing</div>
+        <h2>Pay once. Use it for good.</h2>
+        <p>Try everything free for 7 days, no card needed. Every licence includes 12 months of updates, and you keep the version you have forever.</p>
+      </div>
+      <div class="pricing">
+        <div class="card plan">
+          <h3>Solo</h3>
+          <div class="price"><span data-price="solo">$149</span> <small>one-time</small></div>
+          <p class="for">One freelancer, one service.</p>
+          <ul>
+            <li>1 service profile</li>
+            <li>1 computer</li>
+            <li>All features and alerts</li>
+            <li>12 months of updates</li>
+          </ul>
+          <a class="btn primary" data-buy="solo" href="#">Buy Solo</a>
+        </div>
+        <div class="card plan popular">
+          <span class="tag">Most popular</span>
+          <h3>Pro</h3>
+          <div class="price"><span data-price="pro">$299</span> <small>one-time</small></div>
+          <p class="for">For people who offer several services.</p>
+          <ul>
+            <li>5 service profiles</li>
+            <li>Up to 3 computers</li>
+            <li>All features and alerts</li>
+            <li>12 months of updates</li>
+          </ul>
+          <a class="btn primary" data-buy="pro" href="#">Buy Pro</a>
+        </div>
+        <div class="card plan">
+          <h3>Agency</h3>
+          <div class="price"><span data-price="agency">$599</span> <small>one-time</small></div>
+          <p class="for">For small teams and agencies.</p>
+          <ul>
+            <li>25 service profiles</li>
+            <li>Up to 10 computers</li>
+            <li>All features and alerts</li>
+            <li>12 months of updates</li>
+          </ul>
+          <a class="btn primary" data-buy="agency" href="#">Buy Agency</a>
+        </div>
+      </div>
+      <p class="fine">Prices in US dollars. Taxes may be added at checkout. <span data-delivery></span></p>
+      <div class="hero-actions" style="justify-content:center">
+        <a class="btn big" data-download href="#pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Not sure yet? Download the free trial
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="band">
+    <div class="wrap">
+      <div class="section-head center" style="text-align:center">
+        <div class="eyebrow">Questions</div>
+        <h2>Frequently asked questions</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Does it search Facebook automatically?</summary>
+          <p>No, and be wary of anything that says it does. Since 2024 Facebook hasn't allowed any outside app to read group posts, and tools that claim otherwise usually scrape, which breaks Facebook's rules and can get your account restricted.</p>
+          <p>ClientHunter takes the honest route: a browser helper. While you're reading a group yourself, you highlight a post and send it over with one click — one post, chosen by you, about as automated as copy-and-paste. It arrives scored, checked and with a reply ready to edit. The same button works on WhatsApp Web, Nextdoor, LinkedIn and any other site.</p>
+        </details>
+        <details>
+          <summary>Will it message people for me?</summary>
+          <p>Never. ClientHunter writes a draft; you read it, edit it and send it yourself. Automatic messages get accounts banned and put clients off, and it's not how good work is won.</p>
+        </details>
+        <details>
+          <summary>Is it a subscription?</summary>
+          <p>No. You pay once. Your licence includes 12 months of updates, and after that you keep using the version you have, for as long as you like.</p>
+        </details>
+        <details>
+          <summary>What do I need to run it?</summary>
+          <p>A Windows 10 or 11 computer (64-bit). That's it. The AI is built in: one click in Settings downloads it (about 1.1 GB, once) and it then runs on your own machine, offline and free. No accounts, no command line, no monthly bill. If you'd rather use your own Claude or OpenAI account, you can.</p>
+        </details>
+        <details>
+          <summary>Is my data private?</summary>
+          <p>Yes. Your profiles, leads and notes are stored on your own computer, not on our servers. With the free local AI, nothing about your leads leaves your machine.</p>
+        </details>
+        <details>
+          <summary>Windows showed a warning when I installed it. Is that normal?</summary>
+          <p>Yes. ClientHunter is made by an independent developer and doesn't have a paid Microsoft signing certificate yet, so Windows may say “Windows protected your PC”. Click <em>More info</em>, then <em>Run anyway</em>.</p>
+        </details>
+        <details>
+          <summary>Does it work for trades like painting or plumbing?</summary>
+          <p>Yes. Set your service and travel distance and it only shows jobs in your area. Today most trade leads come from posts you paste in from local Facebook groups, WhatsApp and Nextdoor. Reddit and more local sources are on the way.</p>
+        </details>
+        <details>
+          <summary>How do I get my licence key?</summary>
+          <p><span data-delivery-faq>After you buy, your licence key is sent to you by email.</span> Paste it into <em>Settings → Licence</em> in the app. No internet connection is needed to activate.</p>
+        </details>
+        <details>
+          <summary>Is there a Mac version?</summary>
+          <p>Not yet. It's planned. The trial is Windows-only for now.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="wrap">
+      <h2>Your next client is posting right now.</h2>
+      <p class="muted" style="margin-top:12px;font-size:1.08rem">Try ClientHunter free for 7 days. No card, no account.</p>
+      <div class="hero-actions">
+        <a class="btn primary big" data-download href="#pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Download the free trial
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span class="brand"><img src="assets/logo.png" alt="" width="22" height="22" />ClientHunter AI</span>
+    <span>© 2026 ClientHunter AI</span>
+    <span class="spacer"></span>
+    <a data-contact href="#">Contact</a>
+    <span>This site uses no cookies or tracking.</span>
+  </div>
+</footer>
+
+<script>
+  // ---------- Settings: edit these ----------
+  const SITE = {
+    // Direct link to the installer (e.g. a GitHub release file).
+    downloadUrl: "https://github.com/TheoLeburu/clienthunter/releases/latest/download/ClientHunter-Setup.exe",
+    // Checkout links from your payment provider (e.g. Lemon Squeezy). Leave empty to use email instead.
+    buyUrls: { solo: "", pro: "", agency: "" },
+    prices: { solo: "$149", pro: "$299", agency: "$599" },
+    // Shown for buying questions and in the footer.
+    contactEmail: "",
+    // What buyers are told about receiving their key.
+    delivery: "Your licence key is emailed to you within 24 hours of purchase.",
+  };
+  // ------------------------------------------
+
+  for (const [plan, price] of Object.entries(SITE.prices)) {
+    document.querySelectorAll(`[data-price="${plan}"]`).forEach((el) => (el.textContent = price));
+  }
+  document.querySelectorAll("[data-delivery]").forEach((el) => (el.textContent = SITE.delivery));
+  document.querySelectorAll("[data-delivery-faq]").forEach((el) => (el.textContent = SITE.delivery));
+
+  function unavailable(el, label) {
+    el.setAttribute("aria-disabled", "true");
+    el.title = label;
+    el.addEventListener("click", (e) => e.preventDefault());
+  }
+
+  document.querySelectorAll("[data-download]").forEach((el) => {
+    if (SITE.downloadUrl) el.href = SITE.downloadUrl;
+    else if (el.closest(".nav") === null) unavailable(el, "Download link not set yet");
+  });
+
+  document.querySelectorAll("[data-buy]").forEach((el) => {
+    const plan = el.dataset.buy;
+    const url = SITE.buyUrls[plan];
+    if (url) el.href = url;
+    else if (SITE.contactEmail) el.href = `mailto:${SITE.contactEmail}?subject=${encodeURIComponent(`ClientHunter ${plan[0].toUpperCase()}${plan.slice(1)} licence`)}`;
+    else unavailable(el, "Checkout not set up yet");
+  });
+
+  document.querySelectorAll("[data-contact]").forEach((el) => {
+    if (SITE.contactEmail) el.href = `mailto:${SITE.contactEmail}`;
+    else el.remove();
+  });
+</script>
+</body>
+</html>
